@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#04040f;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:'Courier New',monospace;color:#fff;padding:12px;}
+h1{font-size:clamp(1rem,3vw,1.6rem);text-align:center;margin-bottom:10px;background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#c77dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;letter-spacing:3px;text-transform:uppercase;}
+canvas{display:block;border-radius:10px;border:2px solid rgba(80,80,220,0.25);cursor:none;}
+.hud{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:600px;padding:7px 14px;margin-bottom:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;}
+.screen{width:100%;max-width:600px;text-align:center;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px 18px;}
+.btn{padding:12px 38px;font-size:1rem;font-weight:900;background:linear-gradient(135deg,#6bcb77,#4d96ff);border:none;border-radius:50px;color:#fff;cursor:pointer;text-transform:uppercase;letter-spacing:2px;box-shadow:0 0 24px rgba(107,203,119,0.35);transition:transform 0.15s;}
+.btn:hover{transform:scale(1.06);}
+.btn2{padding:11px 24px;font-size:0.9rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);border-radius:50px;color:#ccc;cursor:pointer;margin-left:10px;}
+.dpad{display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:8px;}
+.drow{display:flex;gap:10px;}
+.dk{width:46px;height:46px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);border-radius:9px;color:#fff;font-size:1.1rem;cursor:pointer;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;}
+.pop{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;background:rgba(0,0,0,0.9);padding:9px 24px;border-radius:50px;font-size:1rem;font-weight:900;white-space:nowrap;border:2px solid currentColor;}
+.footer{margin-top:12px;color:rgba(255,255,255,0.2);font-size:0.65rem;letter-spacing:2px;}
+</style>
+</head>
+<body>
+<h1>😎 Ibrar Saves The Day!</h1>
+
+<!-- MENU -->
+<div id="menu" class="screen">
+  <p style="color:#aaa;font-size:0.92rem;line-height:1.8;margin-bottom:10px">
+    Ibrar's ONE job: <span style="color:#6bcb77;font-weight:700">Save innocent people 🦸</span><br>
+    But his arch-enemies are hunting him...
+  </p>
+  <div style="font-size:2rem;letter-spacing:8px;margin:10px 0">🍕 🍔 🌮 🍗 🍛</div>
+  <p style="color:#ff6b6b;font-weight:700;font-size:0.95rem;margin-bottom:14px">THE FOOD IS LITERALLY HUNTING HIM!</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;text-align:left;padding:12px;background:rgba(255,255,255,0.03);border-radius:10px">
+    <div><div style="color:#ffd93d;font-size:0.7rem;letter-spacing:2px;margin-bottom:2px">🎮 MOVE</div><div style="color:#ddd;font-size:0.83rem">WASD / Arrows / D-Pad</div></div>
+    <div><div style="color:#ffd93d;font-size:0.7rem;letter-spacing:2px;margin-bottom:2px">✅ SAVE</div><div style="color:#ddd;font-size:0.83rem">Touch 👨👩 people</div></div>
+    <div><div style="color:#ffd93d;font-size:0.7rem;letter-spacing:2px;margin-bottom:2px">🚫 DODGE</div><div style="color:#ddd;font-size:0.83rem">All food (they home!)</div></div>
+    <div><div style="color:#ffd93d;font-size:0.7rem;letter-spacing:2px;margin-bottom:2px">❤️ LIVES</div><div style="color:#ddd;font-size:0.83rem">3 — use them wisely</div></div>
+  </div>
+  <div id="menuHs" style="color:#ffd93d;font-weight:700;margin-bottom:12px;min-height:20px"></div>
+  <button class="btn" onclick="startGame()">START SAVING! 🦸</button>
+</div>
+
+<!-- PLAYING -->
+<div id="playing" style="display:none;width:100%;max-width:600px;display:none;flex-direction:column;align-items:center">
+  <div class="hud">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="color:#ffd93d;font-weight:900;font-size:0.9rem">😎 IBRAR</span>
+      <span style="color:#aaa;font-size:0.82rem">SCORE: <strong id="scoreDisp" style="color:#6bcb77;font-size:0.95rem">0</strong></span>
+    </div>
+    <div id="livesDisp" style="display:flex;gap:3px;font-size:1.2rem">❤️❤️❤️</div>
+  </div>
+  <div style="position:relative;width:100%">
+    <canvas id="gc" width="600" height="380"></canvas>
+    <div id="popup" style="display:none" class="pop"></div>
+  </div>
+  <div class="dpad">
+    <div class="dk" data-key="ArrowUp">▲</div>
+    <div class="drow">
+      <div class="dk" data-key="ArrowLeft">◀</div>
+      <div class="dk" data-key="ArrowDown">▼</div>
+      <div class="dk" data-key="ArrowRight">▶</div>
+    </div>
+  </div>
+  <p style="color:rgba(255,255,255,0.2);font-size:0.65rem;margin-top:5px">Touch D-pad or WASD / Arrow Keys</p>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover" class="screen" style="display:none">
+  <div style="font-size:4rem;margin-bottom:6px">💀</div>
+  <h2 style="color:#ff6b6b;font-size:1.8rem;margin-bottom:4px;text-transform:uppercase;letter-spacing:3px">FOOD WON!</h2>
+  <p style="color:#888;margin-bottom:16px;font-size:0.9rem">The delicious enemies defeated Ibrar...</p>
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:18px;margin-bottom:16px">
+    <div id="finalScore" style="font-size:3rem;color:#6bcb77;font-weight:900;line-height:1">0</div>
+    <div style="color:#888;font-size:0.72rem;text-transform:uppercase;letter-spacing:2px;margin-top:3px">Points Scored</div>
+    <div id="hsMsg" style="margin-top:10px;font-weight:700;min-height:20px"></div>
+  </div>
+  <div id="epitaph" style="color:rgba(255,255,255,0.3);font-size:0.8rem;margin-bottom:16px;font-style:italic"></div>
+  <button class="btn" onclick="startGame()">RETRY 💪</button>
+  <button class="btn2" onclick="showMenu()">Menu</button>
+</div>
+
+<div class="footer">IBRAR MEME GAME™ — Save fast, eat never</div>
+
+<script>
+const GW=600,GH=380,PS=42,PSIZ=36,FSIZ=34;
+const FOODS=['🍕','🍔','🌮','🍗','🍛','🧆','🥘','🍜','🌯','🥗'];
+const PEOPLE=['👨','👩','👦','👧','🧓','👴','👵','🙋‍♂️','🙋‍♀️'];
+const SAVE_MSGS=['SAVED! MashAllah ✨','GOAT behavior! 🐐','Hero Ibrar! 💪','W rizz! 🫡','LEGENDARY! 😤','Ibrar delivers! 🦸'];
+const HIT_MSGS=['FOOD ATTACK! 💀','Biryani got him! 😱','CURRY WINS! 🍛','The burger hunts! 🍔','He got EATEN! 🍕','NOOOO! 😭'];
+const EPITAPHS=['He ran, but the biryani ran faster.','The pizza was faster than his rizz.','Even MashAllah couldn\'t save him.','Curry: 1 — Ibrar: 0 😔'];
+
+let uid=0,g=null,raf=null,keys={},popTimer=null,hs=0;
+
+const rand=(a,b)=>a+Math.random()*(b-a);
+const dist=(x1,y1,x2,y2)=>Math.sqrt((x1-x2)**2+(y1-y2)**2);
+
+function mkPerson(){return{id:++uid,x:rand(60,GW-100),y:rand(60,GH-100),emoji:PEOPLE[Math.floor(Math.random()*PEOPLE.length)],bob:Math.random()*Math.PI*2};}
+function mkFood(diff){
+  const side=Math.floor(Math.random()*4),spd=1.5+diff*0.3;
+  let x,y,vx=0,vy=0;
+  if(side===0){x=rand(0,GW);y=-50;vy=spd;}
+  else if(side===1){x=GW+50;y=rand(0,GH);vx=-spd;}
+  else if(side===2){x=rand(0,GW);y=GH+50;vy=-spd;}
+  else{x=-50;y=rand(0,GH);vx=spd;}
+  vx+=rand(-0.3,0.3);vy+=rand(-0.3,0.3);
+  return{id:++uid,x,y,vx,vy,emoji:FOODS[Math.floor(Math.random()*FOODS.length)]};
+}
+
+function el(id){return document.getElementById(id);}
+function show(id){el(id).style.display=id==='playing'?'flex':'block';}
+function hide(id){el(id).style.display='none';}
+function showMenu(){hide('playing');hide('gameover');show('menu');if(hs>0)el('menuHs').textContent='🏆 High Score: '+hs+' pts';}
+
+function flash(msg,isHit){
+  const p=el('popup');p.textContent=msg;
+  p.style.display='block';p.style.color=isHit?'#ff4444':'#6bcb77';
+  clearTimeout(popTimer);
+  popTimer=setTimeout(()=>{p.style.display='none';},1600);
+}
+
+function startGame(){
+  uid=0;
+  g={px:GW/2-PS/2,py:GH/2-PS/2,inv:0,
+     people:[mkPerson(),mkPerson(),mkPerson()],foods:[],
+     score:0,lives:3,frame:0,lastPerson:0,lastFood:0,diff:1,over:false};
+  el('scoreDisp').textContent='0';
+  updateLives(3);
+  el('popup').style.display='none';
+  hide('menu');hide('gameover');show('playing');
+  cancelAnimationFrame(raf);loop();
+}
+
+function updateLives(n){
+  el('livesDisp').textContent='❤️'.repeat(Math.max(0,n))+'🖤'.repeat(Math.max(0,3-n));
+}
+
+function loop(){
+  if(!g||g.over){return;}
+  g.frame++;
+  const fc=g.frame;
+
+  // Input
+  const sp=5;
+  if((keys.ArrowLeft||keys.a||keys.A)&&g.px>0)g.px-=sp;
+  if((keys.ArrowRight||keys.d||keys.D)&&g.px<GW-PS)g.px+=sp;
+  if((keys.ArrowUp||keys.w||keys.W)&&g.py>0)g.py-=sp;
+  if((keys.ArrowDown||keys.s||keys.S)&&g.py<GH-PS)g.py+=sp;
+  if(g.inv>0)g.inv--;
+
+  const pcx=g.px+PS/2,pcy=g.py+PS/2;
+
+  // Food update + homing
+  g.foods.forEach(f=>{
+    const dx=pcx-(f.x+FSIZ/2),dy=pcy-(f.y+FSIZ/2),d=Math.sqrt(dx*dx+dy*dy)||1;
+    f.vx+=dx/d*0.025*g.diff;f.vy+=dy/d*0.025*g.diff;
+    const spd=Math.sqrt(f.vx*f.vx+f.vy*f.vy),mx=2.2+g.diff*0.45;
+    if(spd>mx){f.vx=f.vx/spd*mx;f.vy=f.vy/spd*mx;}
+    f.x+=f.vx;f.y+=f.vy;
+  });
+  g.foods=g.foods.filter(f=>f.x>-300&&f.x<GW+300&&f.y>-300&&f.y<GH+300);
+  if(g.foods.length>20)g.foods.shift();
+
+  // Spawn person
+  if(fc-g.lastPerson>180&&g.people.length<6){g.people.push(mkPerson());g.lastPerson=fc;}
+
+  // Spawn food
+  const fi=Math.max(25,100-g.diff*10);
+  if(fc-g.lastFood>fi){g.foods.push(mkFood(g.diff));g.lastFood=fc;}
+
+  // Save people
+  const pb=g.people.length;
+  g.people=g.people.filter(p=>dist(pcx,pcy,p.x+PSIZ/2,p.y+PSIZ/2)>38);
+  const saved=pb-g.people.length;
+  if(saved>0){
+    g.score+=saved*10;
+    g.diff=1+Math.floor(g.score/80)*0.25;
+    el('scoreDisp').textContent=g.score;
+    flash(SAVE_MSGS[Math.floor(Math.random()*SAVE_MSGS.length)],false);
+  }
+
+  // Food hit
+  if(g.inv===0){
+    const hit=g.foods.some(f=>dist(pcx,pcy,f.x+FSIZ/2,f.y+FSIZ/2)<28);
+    if(hit){
+      g.lives--;g.inv=120;
+      updateLives(g.lives);
+      flash(HIT_MSGS[Math.floor(Math.random()*HIT_MSGS.length)],true);
+      if(g.lives<=0){
+        g.over=true;
+        if(g.score>hs)hs=g.score;
+        el('finalScore').textContent=g.score;
+        el('hsMsg').innerHTML=g.score>=hs&&g.score>0?'<span style="color:#ffd93d">🏆 NEW HIGH SCORE!</span>':'<span style="color:#666">Best: '+hs+' pts</span>';
+        el('epitaph').textContent='"'+EPITAPHS[Math.floor(Math.random()*EPITAPHS.length)]+'"';
+        setTimeout(()=>{hide('playing');show('gameover');},500);
+        return;
+      }
+    }
+  }
+
+  // Draw
+  const canvas=el('gc'),ctx=canvas.getContext('2d');
+  ctx.fillStyle='#04040f';ctx.fillRect(0,0,GW,GH);
+
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.025)';ctx.lineWidth=1;
+  for(let x=0;x<GW;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,GH);ctx.stroke();}
+  for(let y=0;y<GH;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(GW,y);ctx.stroke();}
+
+  // Vignette
+  const vg=ctx.createRadialGradient(GW/2,GH/2,GH*0.2,GW/2,GH/2,GH*0.8);
+  vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(200,0,50,0.08)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,GW,GH);
+
+  ctx.textBaseline='top';
+
+  // People
+  g.people.forEach(p=>{
+    const bob=Math.sin(fc*0.07+p.bob)*4;
+    ctx.shadowColor='#00ffaa';ctx.shadowBlur=14;
+    ctx.font=PSIZ+'px serif';ctx.fillText(p.emoji,p.x,p.y+bob);
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(0,255,170,0.9)';ctx.font='bold 7px Courier New';
+    ctx.textBaseline='bottom';ctx.fillText('SAVE ME!',p.x+2,p.y+bob-1);ctx.textBaseline='top';
+  });
+
+  // Food
+  g.foods.forEach(f=>{
+    ctx.save();
+    ctx.translate(f.x+FSIZ/2,f.y+FSIZ/2);
+    ctx.rotate(Math.sin(fc*0.09+f.id)*0.35);
+    ctx.shadowColor='#ff3333';ctx.shadowBlur=12;
+    ctx.font=FSIZ+'px serif';ctx.textBaseline='middle';
+    ctx.fillText(f.emoji,-FSIZ/2,-FSIZ/2+3);
+    ctx.shadowBlur=0;ctx.restore();ctx.textBaseline='top';
+  });
+
+  // Player
+  const show2=g.inv===0||Math.floor(g.inv/7)%2===0;
+  if(show2){
+    ctx.shadowColor='#ffee44';ctx.shadowBlur=26;
+    ctx.font=PS+'px serif';ctx.fillText('😎',g.px,g.py);
+    ctx.shadowBlur=0;
+  }
+
+  // Border
+  ctx.strokeStyle='rgba(80,80,255,0.2)';ctx.lineWidth=2;ctx.strokeRect(1,1,GW-2,GH-2);
+
+  raf=requestAnimationFrame(loop);
+}
+
+// Keyboard
+window.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();
+});
+window.addEventListener('keyup',e=>{keys[e.key]=false;});
+
+// D-pad touch
+document.querySelectorAll('.dk').forEach(btn=>{
+  const k=btn.dataset.key;
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true;});
+  btn.addEventListener('pointerup',()=>{keys[k]=false;});
+  btn.addEventListener('pointerleave',()=>{keys[k]=false;});
+});
+
+showMenu();
+</script>
+</body>
+</html>
