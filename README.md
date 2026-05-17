@@ -56,7 +56,7 @@ No build step. No npm install. Just open the file.
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/ibrar-saves-the-day.git
+git clone https://github.com/Darkness0258/-Ibrar-Saves-The-Day-.git
 
 # Open in your browser
 open ibrar_saves_the_day_game.html
